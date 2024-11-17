@@ -1,0 +1,38 @@
+`define HS_F_DIV		780
+`define VS_F_DIV		831480
+
+
+
+
+
+
+module VGA_Checker
+(
+		input		[17:0]	SW;
+		input					CLOCK_50;
+		
+		output	[7:0]		VGA_R;
+		output	[7:0]		VGA_G;
+		output	[7:0]		VGA_B;
+		output				VGA_CLK;
+		output				VGA_BLANK_N;
+		output				VGA_SYNC_N;
+		output				VGA_HS;
+		output				VGA_VS;
+);
+		logic		[$clog2(`HS_F_DIV)-1:0]	HS_counter;
+		logic		[$clog2(`VS_F_DIV)-1:0]	VS_counter;
+		
+		logic		[7:0]		red,		next_red;
+		logic		[7:0]		green,	next_green;
+		logic		[7:0]		blue,		next_blue;
+		logic					pxl_clk,	next_pxl_clk;
+		logic					hs,		next_hs;
+		logic					vs,		next_vs;
+		logic					blank,	next_blank;
+		logic					sync,		next_sync;
+		
+		assign VGA_R = red;
+		assign VGA_G = green;
+		assign VGA_B = blue;
+		assign 
