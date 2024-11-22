@@ -5,3 +5,6 @@ For the dancing machine, we use Zumos that react to the music based on the frequ
 
 ## Zumos
 Helpful notes for progamming Zumos: https://docs.google.com/document/d/1Dz3_72dKQfX7xPT2FNfReigo5E8UwkcgPAN7UEdAep4/edit?usp=sharing
+
+## Zigbee
+Notes for wireless communication using XBees: https://docs.google.com/document/d/1lX6aLOI5VVE-cPfXmBmRcAEeEFGvqnh3hTa6LnKqgM4/edit?usp=sharing
