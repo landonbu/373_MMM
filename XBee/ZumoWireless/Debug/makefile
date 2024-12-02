@@ -60,8 +60,8 @@ all: main-build
 main-build: ZumoWireless.elf secondary-outputs
 
 # Tool invocations
-ZumoWireless.elf ZumoWireless.map: $(OBJS) $(USER_OBJS) N:\EECS\ 373\ZumoWireless\STM32F411RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "ZumoWireless.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"N:\EECS 373\ZumoWireless\STM32F411RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="ZumoWireless.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+ZumoWireless.elf ZumoWireless.map: $(OBJS) $(USER_OBJS) C:\Users\georg\UMICH\373_MMM\XBee\ZumoWireless\STM32F411RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "ZumoWireless.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\georg\UMICH\373_MMM\XBee\ZumoWireless\STM32F411RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="ZumoWireless.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

@@ -18,6 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dance_library.h"
+#include "genre_table.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -66,6 +68,11 @@ static void MX_USART1_UART_Init(void);
 #define TIM_CCR1_OFFSET 0x34 //capture/compare register 1
 #define TIM_CCR2_OFFSET 0x38 //capture/compare register 2
 #define CCR_MASK 0xFFFF
+
+typedef struct {
+	char genre[8];
+	uint8_t bpm;
+} ZumoPacket;
 /* USER CODE END 0 */
 
 /**
@@ -76,7 +83,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+	create_table();
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -103,8 +110,6 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
-  uint32_t * tim3_ccr2 = (uint32_t *)(TIM3_ADDR + TIM_CCR2_OFFSET); // pointer to right motor CCR
-  uint32_t * tim4_ccr1 = (uint32_t *)(TIM4_ADDR + TIM_CCR1_OFFSET); // pointer to left motor CCR
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -112,22 +117,43 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	uint8_t data[4];
-	HAL_UART_Receive(&huart1, &data[0], sizeof(data), HAL_MAX_DELAY);
-	uint32_t CCR_left = data[0];
-	uint32_t CCR_right = data[1];
-	int DIR_left = data[2];
-	int DIR_right = data[3];
+	ZumoPacket song;
+	HAL_StatusTypeDef status = HAL_UART_Receive(&huart1, &song, sizeof(song), HAL_MAX_DELAY);
+	size_t len = strlen(song.genre) + 1;
+	char new_genre[len];
+	memcpy(new_genre, song.genre, len);
 
-	*tim3_ccr2 &= ~CCR_MASK;
-	*tim3_ccr2 |= CCR_right;
-	*tim4_ccr1 &= ~CCR_MASK;
-	*tim4_ccr1 |= CCR_left;
+	uint8_t bpm;
+	if (song.bpm > 199) {
+		bpm = 199;
+	}
+	else if (song.bpm < 60) {
+		bpm = 60;
+	}
+	else {
+		bpm = song.bpm;
+	}
 
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, DIR_right);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, DIR_left);
+	if (status == HAL_OK) {
+		if (!strcmp(new_genre, "ROCK")) {
+			straight_forward(bpm);
+			HAL_Delay(5000);
+			stop();
+		}
+		else if (!strcmp(new_genre, "JAZZ")) {
+			straight_backward(bpm);
+			HAL_Delay(5000);
+			stop();
+		}
+		else if (!strcmp(new_genre, "GROOVY")) {
+			spin_cw(bpm);
+			HAL_Delay(5000);
+			stop();
+		}
+		// Add more genres here
+	}
 
-	HAL_Delay(1000);
+	//(*genre_table[genre_index].fun_ptr)(bpm);
   }
   /* USER CODE END 3 */
 }
