@@ -1,4 +1,4 @@
-`define HS_F_DIV		781
+`define HS_F_DIV		785
 `define VS_F_DIV		831480
 `define HS_DUR			156		//total length of each horizontal signal
 `define HS_P_DUR		10			//hs pulse duration, 100s of ns
@@ -45,7 +45,7 @@ module VGA_Checker(
 		logic [15:0]		 	packet, next_packet;
 		logic [4:0]				spi_cnt, next_spi_cnt;
 		
-		logic	[`N-1:0][$clog2(`HS_F_DIV)-1:0]	cmp_regs;
+		logic	[`N-1:0][$clog2(`VS_F_DIV)-1:0]	cmp_regs;
 		
 		assign spi_clk			= GPIO[0];
 		assign csel				= GPIO[2];
@@ -64,7 +64,10 @@ module VGA_Checker(
 		generate
 			genvar j;
 			for(j = 0; j < `N; j++) begin : compCreation
-				assign cmp_regs[j] = {regs[j],'0};
+				//assign cmp_regs[j][$clog2(`VS_F_DIV)-1]							= '1;
+				assign cmp_regs[j][$clog2(`VS_F_DIV)-1:$clog2(`VS_F_DIV)-8] = regs[j];
+				assign cmp_regs[j][$clog2(`VS_F_DIV)-9:0]						= '1;
+				//assign cmp_regs[j] = {regs[j],'0};
 			end
 		endgenerate
 		
@@ -90,7 +93,7 @@ module VGA_Checker(
 			//next_green		= VS_counter[$clog2(`VS_F_DIV)-3] ^ HS_counter[$clog2(`HS_F_DIV)-4] ? '1 : '0;
 			//next_blue		= VS_counter[$clog2(`VS_F_DIV)-3] ^ HS_counter[$clog2(`HS_F_DIV)-4] ? '1 : '0;
 			
-			for(int i = 0; i < `N; i++) begin
+			/*for(int i = 0; i < `N; i++) begin //horizontal bars
 				if(VS_counter <= (((i+1) * `VS_F_DIV) / (`N)) && VS_counter >= (((i) * `VS_F_DIV) / (`N))) begin
 					if((HS_counter-200) <= cmp_regs[i]) begin
 						next_red		= '1;
@@ -100,6 +103,21 @@ module VGA_Checker(
 						next_red		= '0;
 						next_green	= '0;
 						next_blue	= '0;
+					end
+				end
+			end*/
+			
+			for(int i = 0; i < `N; i++) begin //vertical bars
+				if((HS_counter-200) <= (((i+1) * (`HS_F_DIV-200)) / (`N)) && (HS_counter-200) >= (((i) * (`HS_F_DIV-200)) / (`N))) begin
+					//if((VS_counter-200000) <= cmp_regs[i]) begin top down
+					if(830000-VS_counter >= cmp_regs[i]) begin //bottom up
+						next_red		= '0;
+						next_green	= '0;
+						next_blue	= '0;
+					end else begin
+						next_red		= '1;
+						next_green	= '1;
+						next_blue	= '1;
 					end
 				end
 			end
