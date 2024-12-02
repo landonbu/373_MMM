@@ -134,24 +134,7 @@ int main(void)
 		bpm = song.bpm;
 	}
 
-	if (status == HAL_OK) {
-		if (!strcmp(new_genre, "ROCK")) {
-			straight_forward(bpm);
-			HAL_Delay(5000);
-			stop();
-		}
-		else if (!strcmp(new_genre, "JAZZ")) {
-			straight_backward(bpm);
-			HAL_Delay(5000);
-			stop();
-		}
-		else if (!strcmp(new_genre, "GROOVY")) {
-			spin_cw(bpm);
-			HAL_Delay(5000);
-			stop();
-		}
-		// Add more genres here
-	}
+	start_dance(new_genre, bpm);
 
 	//(*genre_table[genre_index].fun_ptr)(bpm);
   }

@@ -34,4 +34,16 @@ void create_table() {
 	genre_table[2] = country_entry;
 }
 
+void start_dance(char *genre, uint8_t bpm) {
+	uint8_t index;
+	size_t length = sizeof(genre_table) / sizeof(genre_table[0]);
+	for (size_t i; i < length; i++) {
+		if (!strcmp(genre_table[i].genre, genre)) {
+			index = i;
+			break;
+		}
+	}
+	(*genre_table[index].fun_ptr)(bpm);
+}
+
 #endif /* INC_GENRE_TABLE_H_ */
