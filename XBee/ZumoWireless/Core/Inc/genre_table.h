@@ -28,22 +28,23 @@ void create_table() {
 	genre_table[1] = pop_entry;
 
 	// Country
-	struct table_entry country_entry;
-	strcpy(country_entry.genre, "GROOVY");
-	country_entry.fun_ptr = &straight_forward;
-	genre_table[2] = country_entry;
+	struct table_entry groovy_entry;
+	strcpy(groovy_entry.genre, "GROOVY");
+	groovy_entry.fun_ptr = &straight_forward;
+	genre_table[2] = groovy_entry;
 }
 
-void start_dance(char *genre, uint8_t bpm) {
+void start_dance(char *genre) {
 	uint8_t index;
 	size_t length = sizeof(genre_table) / sizeof(genre_table[0]);
-	for (size_t i; i < length; i++) {
+	for (size_t i = 0; i < length; i++) {
 		if (!strcmp(genre_table[i].genre, genre)) {
 			index = i;
 			break;
 		}
 	}
-	(*genre_table[index].fun_ptr)(bpm);
+	(*genre_table[index].fun_ptr)(120);
+	// straight_forward(60);
 }
 
 #endif /* INC_GENRE_TABLE_H_ */

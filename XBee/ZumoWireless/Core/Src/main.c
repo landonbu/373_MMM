@@ -18,12 +18,12 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "dance_library.h"
-#include "genre_table.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "string.h"
+#include "stdio.h"
+#include "genre_table.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -69,10 +69,21 @@ static void MX_USART1_UART_Init(void);
 #define TIM_CCR2_OFFSET 0x38 //capture/compare register 2
 #define CCR_MASK 0xFFFF
 
-typedef struct {
-	char genre[8];
-	uint8_t bpm;
-} ZumoPacket;
+char genre[6];
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance == USART1)
+    {
+//    	size_t len = strlen(genre) + 1;
+//    	char new_genre[len];
+//    	memcpy(new_genre, genre, len);
+
+    	start_dance(genre);
+    }
+
+    HAL_UART_Receive_IT(&huart1, &genre, sizeof(genre));
+}
 /* USER CODE END 0 */
 
 /**
@@ -99,7 +110,6 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -110,33 +120,25 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+  HAL_UART_Receive_IT(&huart1, &genre, sizeof(genre));
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+//	  char genre[8];
+//	  HAL_StatusTypeDef status = HAL_UART_Receive(&huart1, &genre, sizeof(genre), HAL_MAX_DELAY);
+//	  if (status == HAL_OK) {
+//		  size_t len = strlen(genre) + 1;
+//		  char new_genre[len];
+//		  memcpy(new_genre, genre, len);
+//
+//		  start_dance(new_genre);
+//	  }
     /* USER CODE END WHILE */
-	ZumoPacket song;
-	HAL_StatusTypeDef status = HAL_UART_Receive(&huart1, &song, sizeof(song), HAL_MAX_DELAY);
-	size_t len = strlen(song.genre) + 1;
-	char new_genre[len];
-	memcpy(new_genre, song.genre, len);
 
-	uint8_t bpm;
-	if (song.bpm > 199) {
-		bpm = 199;
-	}
-	else if (song.bpm < 60) {
-		bpm = 60;
-	}
-	else {
-		bpm = song.bpm;
-	}
-
-	start_dance(new_genre, bpm);
-
-	//(*genre_table[genre_index].fun_ptr)(bpm);
+    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }

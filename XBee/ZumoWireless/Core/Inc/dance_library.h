@@ -20,6 +20,8 @@
 uint32_t * tim3_ccr2 = (uint32_t *)(TIM3_ADDR + TIM_CCR2_OFFSET); // pointer to right motor CCR
 uint32_t * tim4_ccr1 = (uint32_t *)(TIM4_ADDR + TIM_CCR1_OFFSET); // pointer to left motor CCR
 
+int bool_stop = 0;
+
 struct table_entry {
 	char genre[50];
 	void (*fun_ptr)(int);
@@ -33,6 +35,9 @@ void stop(){
 	  *tim3_ccr2 |= 0; // sets right motor speed
 	  *tim4_ccr1 &= ~CCR_MASK;
 	  *tim4_ccr1 |= 0; // sets left motor speed
+
+	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0); // sets right motor direction
+	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, 0); // sets left motor direction
 }
 
 /*
@@ -47,6 +52,9 @@ void straight_forward(int bpm) {
 
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0); // sets right motor direction
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, 0); // sets left motor direction
+
+  for(int i = 0; i < 5000000; i++);
+  stop();
 }
 
 /*
@@ -61,6 +69,9 @@ void straight_backward(int bpm) {
 
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 1); // sets right motor direction
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, 1); // sets left motor direction
+
+  HAL_Delay(2000);
+  stop();
 }
 
 /*
@@ -75,6 +86,9 @@ void spin_cw(int bpm) {
 
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 1); // sets right motor direction
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, 0); // sets left motor direction
+
+  HAL_Delay(2000);
+  stop();
 }
 
 /*
@@ -89,34 +103,43 @@ void spin_ccw(int bpm) {
 
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0); // sets right motor direction
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, 1); // sets left motor direction
+
+  HAL_Delay(2000);
+  stop();
 }
 
 /*
  * Turns Zumo left while also moving forward
  * Arguments: bpm - Determines the overall velocity of the Zumo
  */
-void turn_left(int bpm) {
+void turn_left() {
   *tim3_ccr2 &= ~CCR_MASK;
-  *tim3_ccr2 |= bpm; // sets right motor speed
+  *tim3_ccr2 |= 199; // sets right motor speed
   *tim4_ccr1 &= ~CCR_MASK;
-  *tim4_ccr1 |= bpm - 50; // sets left motor speed
+  *tim4_ccr1 |= 49; // sets left motor speed
 
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0); // sets right motor direction
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, 0); // sets left motor direction
+
+  HAL_Delay(2000);
+  stop();
 }
 
 /*
  * Turns Zumo right while also moving forward
  * Arguments: bpm - Determines the overall velocity of the Zumo
  */
-void turn_right(int bpm) {
+void turn_right() {
   *tim3_ccr2 &= ~CCR_MASK;
-  *tim3_ccr2 |= bpm - 50; // sets right motor speed
+  *tim3_ccr2 |= 49; // sets right motor speed
   *tim4_ccr1 &= ~CCR_MASK;
-  *tim4_ccr1 |= bpm; // sets left motor speed
+  *tim4_ccr1 |= 199; // sets left motor speed
 
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0); // sets right motor direction
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, 0); // sets left motor direction
+
+  HAL_Delay(2000);
+  stop();
 }
 
 /*
@@ -147,6 +170,18 @@ void discrete_spin_ccw(int bpm, int seconds) {
 		stop();
 		HAL_Delay(100); // delay for 0.1 seconds
 	}
+}
+
+void groovy_dance() {
+	while (bool_stop == 0) {
+		discrete_spin_cw(100, 10);
+		discrete_spin_ccw(100, 10);
+		turn_right();
+		HAL_Delay(10000);
+		turn_left();
+		HAL_Delay(10000);
+	}
+	bool_stop = 1;
 }
 
 #endif /* INC_DANCE_LIBRARY_H_ */
