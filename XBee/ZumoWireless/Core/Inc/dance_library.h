@@ -35,54 +35,51 @@ void stop(){
 	  *tim3_ccr2 |= 0; // sets right motor speed
 	  *tim4_ccr1 &= ~CCR_MASK;
 	  *tim4_ccr1 |= 0; // sets left motor speed
-
-	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0); // sets right motor direction
-	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, 0); // sets left motor direction
 }
 
 /*
  * Moves Zumo forward in a straight line
- * Arguments: bpm - Determines the linear velocity of the Zumo
+ * Arguments: speed - Determines the linear velocity of the Zumo
  */
-void straight_forward(int bpm) {
+void straight_forward(int speed) {
   *tim3_ccr2 &= ~CCR_MASK;
-  *tim3_ccr2 |= bpm; // sets right motor speed
+  *tim3_ccr2 |= speed; // sets right motor speed
   *tim4_ccr1 &= ~CCR_MASK;
-  *tim4_ccr1 |= bpm; // sets left motor speed
+  *tim4_ccr1 |= speed; // sets left motor speed
 
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0); // sets right motor direction
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, 0); // sets left motor direction
 
-  for(int i = 0; i < 5000000; i++);
+  HAL_Delay(1000);
   stop();
 }
 
 /*
  * Moves Zumo backward in a straight line
- * Arguments: bpm - Determines the linear velocity of the Zumo
+ * Arguments: speed - Determines the linear velocity of the Zumo
  */
-void straight_backward(int bpm) {
+void straight_backward(int speed) {
   *tim3_ccr2 &= ~CCR_MASK;
-  *tim3_ccr2 |= bpm; // sets right motor speed
+  *tim3_ccr2 |= speed; // sets right motor speed
   *tim4_ccr1 &= ~CCR_MASK;
-  *tim4_ccr1 |= bpm; // sets left motor speed
+  *tim4_ccr1 |= speed; // sets left motor speed
 
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 1); // sets right motor direction
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, 1); // sets left motor direction
 
-  HAL_Delay(2000);
+  HAL_Delay(1000);
   stop();
 }
 
 /*
  * Spins Zumo in place clockwise
- * Arguments: bpm - Determines the angular velocity of the Zumo
+ * Arguments: speed - Determines the angular velocity of the Zumo
  */
-void spin_cw(int bpm) {
+void spin_cw(int speed) {
   *tim3_ccr2 &= ~CCR_MASK;
-  *tim3_ccr2 |= bpm; // sets right motor speed
+  *tim3_ccr2 |= speed; // sets right motor speed
   *tim4_ccr1 &= ~CCR_MASK;
-  *tim4_ccr1 |= bpm; // sets left motor speed
+  *tim4_ccr1 |= speed; // sets left motor speed
 
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 1); // sets right motor direction
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, 0); // sets left motor direction
@@ -91,15 +88,31 @@ void spin_cw(int bpm) {
   stop();
 }
 
+void spin_cw_angle(int w, float angle) {
+  int speed = (int)(23 + (w * 15));
+  *tim3_ccr2 &= ~CCR_MASK;
+  *tim3_ccr2 |= speed; // sets right motor speed
+  *tim4_ccr1 &= ~CCR_MASK;
+  *tim4_ccr1 |= speed; // sets left motor speed
+
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 1); // sets right motor direction
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, 0); // sets left motor direction
+
+  float time = (angle * 3.1415 / 180) / w;
+  HAL_Delay(time * 1000);
+  stop();
+}
+
+
 /*
  * Spins Zumo in place counter-clockwise
- * Arguments: bpm - Determines the angular velocity of the Zumo
+ * Arguments: speed - Determines the angular velocity of the Zumo
  */
-void spin_ccw(int bpm) {
+void spin_ccw(int speed) {
   *tim3_ccr2 &= ~CCR_MASK;
-  *tim3_ccr2 |= bpm; // sets right motor speed
+  *tim3_ccr2 |= speed; // sets right motor speed
   *tim4_ccr1 &= ~CCR_MASK;
-  *tim4_ccr1 |= bpm; // sets left motor speed
+  *tim4_ccr1 |= speed; // sets left motor speed
 
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0); // sets right motor direction
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, 1); // sets left motor direction
@@ -110,7 +123,6 @@ void spin_ccw(int bpm) {
 
 /*
  * Turns Zumo left while also moving forward
- * Arguments: bpm - Determines the overall velocity of the Zumo
  */
 void turn_left() {
   *tim3_ccr2 &= ~CCR_MASK;
@@ -127,7 +139,6 @@ void turn_left() {
 
 /*
  * Turns Zumo right while also moving forward
- * Arguments: bpm - Determines the overall velocity of the Zumo
  */
 void turn_right() {
   *tim3_ccr2 &= ~CCR_MASK;
@@ -142,15 +153,34 @@ void turn_right() {
   stop();
 }
 
+void turn(float rad, float w, float angle, int rl) { // Angle in degrees, rad & vel in cm
+	if (rl) { // right turn for rl == 1
+		*tim3_ccr2 &= ~CCR_MASK;
+		*tim3_ccr2 |= (int)(25 + w * rad - (w * 19)); // sets right motor speed
+		*tim4_ccr1 &= ~CCR_MASK;
+		*tim4_ccr1 |= (int)(25 + w * rad + (w * 19)); // sets left motor speed
+	}
+	else {
+		*tim3_ccr2 &= ~CCR_MASK;
+		*tim3_ccr2 |= (int)(25 + w * rad + (w * 19)); // sets right motor speed
+		*tim4_ccr1 &= ~CCR_MASK;
+		*tim4_ccr1 |= (int)(25 + w * rad - (w * 19)); // sets left motor speed
+	}
+
+	float time = (angle * 3.1415 / 180) / w;
+	HAL_Delay(time * 1000);
+	stop();
+}
+
 /*
  * Discretely spins Zumo in place clockwise for a given number of seconds
  * Arguments:
- * 		bpm - Determines the angular velocity of the Zumo while spinning
+ * 		speed - Determines the angular velocity of the Zumo while spinning
  * 		seconds - How long to spin for
  */
-void discrete_spin_cw(int bpm, int seconds) {
+void discrete_spin_cw(int speed, int seconds) {
 	for (int i = 0; i < 2 * seconds; i++) {
-		spin_cw(bpm);
+		spin_cw(speed);
 		HAL_Delay(400); // delay for 0.4 seconds
 		stop();
 		HAL_Delay(100); // delay for 0.1 seconds
@@ -160,28 +190,73 @@ void discrete_spin_cw(int bpm, int seconds) {
 /*
  * Discretely spins Zumo in place counter clockwise for a given number of seconds
  * Arguments:
- * 		bpm - Determines the angular velocity of the Zumo while spinning
+ * 		speed - Determines the angular velocity of the Zumo while spinning
  * 		seconds - How long to spin for
  */
-void discrete_spin_ccw(int bpm, int seconds) {
+void discrete_spin_ccw(int speed, int seconds) {
 	for (int i = 0; i < 2 * seconds; i++) {
-		spin_ccw(bpm);
+		spin_ccw(speed);
 		HAL_Delay(400); // delay for 0.4 seconds
 		stop();
 		HAL_Delay(100); // delay for 0.1 seconds
 	}
 }
 
-void groovy_dance() {
-	while (bool_stop == 0) {
-		discrete_spin_cw(100, 10);
-		discrete_spin_ccw(100, 10);
-		turn_right();
-		HAL_Delay(10000);
-		turn_left();
-		HAL_Delay(10000);
+void snake(float rad, float w, int rl) {
+	turn(rad, w, 180, rl);
+	turn(rad, w, 180, 1 - rl);
+//	turn(rad, w, 180, rl);
+//	turn(rad, w, 180, 1 - rl);
+}
+
+void star() {
+	for (int i = 0; i < 6; i++) {
+		straight_forward(100);
+		straight_backward(100);
+		spin_cw_angle(3, 60);
 	}
-	bool_stop = 1;
+}
+
+void square() {
+	for (int i = 0; i < 4; i++) {
+		straight_forward(100);
+		spin_cw_angle(3, 90);
+	}
+}
+
+void christmas_dance() {
+
+}
+
+void groovy_dance() {
+
+}
+
+void jazz_dance() {
+
+}
+
+void rock_dance() {
+
+}
+
+void start_dance(char genre) {
+	switch (genre) {
+	    case 'C':
+	        christmas_dance();
+	        break;
+	    case 'G':
+	        groovy_dance();
+	        break;
+	    case 'J':
+	    	jazz_dance();
+	        break;
+	    case 'R':
+	    	rock_dance();
+	    	break;
+	    default:
+	        stop();
+	}
 }
 
 #endif /* INC_DANCE_LIBRARY_H_ */

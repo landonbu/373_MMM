@@ -24,6 +24,7 @@
 #include "string.h"
 #include "stdio.h"
 #include "genre_table.h"
+#include "dance_library.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -69,21 +70,21 @@ static void MX_USART1_UART_Init(void);
 #define TIM_CCR2_OFFSET 0x38 //capture/compare register 2
 #define CCR_MASK 0xFFFF
 
-char genre[6];
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-    if (huart->Instance == USART1)
-    {
-//    	size_t len = strlen(genre) + 1;
-//    	char new_genre[len];
-//    	memcpy(new_genre, genre, len);
-
-    	start_dance(genre);
-    }
-
-    HAL_UART_Receive_IT(&huart1, &genre, sizeof(genre));
-}
+//char genre[6];
+//
+//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+//{
+//    if (huart->Instance == USART1)
+//    {
+////    	size_t len = strlen(genre) + 1;
+////    	char new_genre[len];
+////    	memcpy(new_genre, genre, len);
+//
+//    	start_dance(genre);
+//    }
+//
+//    HAL_UART_Receive_IT(&huart1, &genre, sizeof(genre));
+// }
 /* USER CODE END 0 */
 
 /**
@@ -94,7 +95,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	create_table();
+	// create_table();
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -120,21 +121,23 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
-  HAL_UART_Receive_IT(&huart1, &genre, sizeof(genre));
+  // HAL_UART_Receive_IT(&huart1, &genre, sizeof(genre));
+  HAL_Delay(10000);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//	  char genre[8];
+//	  char genre[1];
 //	  HAL_StatusTypeDef status = HAL_UART_Receive(&huart1, &genre, sizeof(genre), HAL_MAX_DELAY);
 //	  if (status == HAL_OK) {
-//		  size_t len = strlen(genre) + 1;
-//		  char new_genre[len];
-//		  memcpy(new_genre, genre, len);
+////		  size_t len = strlen(genre) + 1;
+////		  char new_genre[len];
+////		  memcpy(new_genre, genre, len);
 //
-//		  start_dance(new_genre);
+//		  start_dance(genre[0]);
 //	  }
     /* USER CODE END WHILE */
 
