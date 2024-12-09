@@ -1,7 +1,7 @@
-`define HS_F_DIV		785
-`define VS_F_DIV		831480
+`define HS_F_DIV		1050
+`define VS_F_DIV		838500
 `define HS_DUR			156		//total length of each horizontal signal
-`define HS_P_DUR		10			//hs pulse duration, 100s of ns
+`define HS_P_DUR		21			//hs pulse duration, 100s of ns
 `define HS_B_DUR		23			//back porch duration, 100s of ns
 `define HS_D_DUR		119		//display duration, 100s of ns
 `define HS_F_DUR		4			//front porch duration, 100s of ns
@@ -31,9 +31,9 @@ module VGA_Checker(
 		logic		[$clog2(`HS_F_DIV)-1:0]	HS_counter, next_HS_counter;
 		logic		[$clog2(`VS_F_DIV)-1:0]	VS_counter, next_VS_counter;
 		
-		logic		[7:0]		red,		next_red;
-		logic		[7:0]		green,	next_green;
-		logic		[7:0]		blue,		next_blue;
+		logic		[7:0]		red,		next_red,	cr;
+		logic		[7:0]		green,	next_green,	cg;
+		logic		[7:0]		blue,		next_blue,	cb;
 		logic					hs,		next_hs;
 		logic					vs,		next_vs;
 		logic					blank,	next_blank;
@@ -72,6 +72,38 @@ module VGA_Checker(
 		endgenerate
 		
 		always_comb begin
+			cr						= '1;
+			cg						= '1;
+			cb						= '1;
+			
+			for(int l = 0; l < 64; l++) begin
+				if(VS_counter[19:14] == l) begin
+					cr = {VS_counter[15], 7'b1100000};
+					cg = {VS_counter[15], 7'b1100000};
+					cb = {VS_counter[15], 7'b1100000};
+					for(int n = 0;  n < 25; n++) begin
+						if(VS_counter[19:14] == n) begin
+							cr = 255;
+							cg = 0 + (5 * n);
+							cb = 0;
+						end
+					end
+					for(int m = 25; m < 51; m++) begin
+						if(VS_counter[19:14] == m) begin
+							cr = m >= 42 ? '0						: 255 - ((m-25)*15);
+							cg = m >= 42 ? 255 - ((m-42)*6)	: 135 + ((m-25)*7);
+							cb = m >= 42 ? 0 + ((m-42)*31)	: '0;
+						end
+					end
+				end
+			end
+			
+			
+			
+			
+			
+			
+		
 			next_HS_counter	= HS_counter;
 			next_red				= red;
 			next_green			= green;
@@ -89,37 +121,34 @@ module VGA_Checker(
 				next_VS_counter = VS_counter + 1;
 			end
 			
-			//next_red			= VS_counter[$clog2(`VS_F_DIV)-3] ^ HS_counter[$clog2(`HS_F_DIV)-4] ? '1 : '0;
-			//next_green		= VS_counter[$clog2(`VS_F_DIV)-3] ^ HS_counter[$clog2(`HS_F_DIV)-4] ? '1 : '0;
-			//next_blue		= VS_counter[$clog2(`VS_F_DIV)-3] ^ HS_counter[$clog2(`HS_F_DIV)-4] ? '1 : '0;
-			
-			/*for(int i = 0; i < `N; i++) begin //horizontal bars
-				if(VS_counter <= (((i+1) * `VS_F_DIV) / (`N)) && VS_counter >= (((i) * `VS_F_DIV) / (`N))) begin
-					if((HS_counter-200) <= cmp_regs[i]) begin
-						next_red		= '1;
-						next_green	= '1;
-						next_blue	= '1;
-					end else begin
-						next_red		= '0;
-						next_green	= '0;
-						next_blue	= '0;
-					end
-				end
-			end*/
-			
 			for(int i = 0; i < `N; i++) begin //vertical bars
-				if((HS_counter-200) <= (((i+1) * (`HS_F_DIV-200)) / (`N)) && (HS_counter-200) >= (((i) * (`HS_F_DIV-200)) / (`N))) begin
+				if((HS_counter-230) <= (((i+1) * 53)) && (HS_counter-230) >= (((i) * (53)))) begin
 					//if((VS_counter-200000) <= cmp_regs[i]) begin top down
-					if(830000-VS_counter >= cmp_regs[i]) begin //bottom up
-						next_red		= '0;
-						next_green	= '0;
-						next_blue	= '0;
+					if(835120-VS_counter >= cmp_regs[i]) begin //bottom up
+						next_red		= '0;//8'b10000000;
+						next_green	= '0;//8'b10000000;
+						next_blue	= '0;//8'b10000000;
 					end else begin
-						next_red		= '1;
-						next_green	= '1;
-						next_blue	= '1;
+						next_red		= cr;
+						next_green	= cg;
+						next_blue	= cb;
 					end
+				end 
+			end
+			
+			for(int j = 0; j < `N; j++) begin
+				if ((HS_counter-230) == (((j+1) * 53)) || (HS_counter-230) == (((j+1) * 53)+1) || (HS_counter-230) == (((j+1) * 53)-1)) begin
+					next_red		= '0;
+					next_green	= '0;
+					next_blue	= '0;
 				end
+			end
+			
+
+			if(VS_counter[14] && &VS_counter[13:11]) begin
+				next_red		= '0;
+				next_green	= '0;
+				next_blue	= '0;
 			end
 			
 			
@@ -129,20 +158,20 @@ module VGA_Checker(
 				next_hs = 1;
 			end
 			
-			if(HS_counter <= 200 || HS_counter >= 780) begin
+			if(HS_counter <= 230 || HS_counter >= 1020) begin
 				next_blank = 0;
 			end else begin
 				next_blank = 1;
 			end
 			
 			
-			if(VS_counter <= 2340) begin//((`VS_F_DIV * `VS_P_DUR)/`VS_DUR)) begin //creates the VS pulse
+			if(VS_counter <= 6240) begin//((`VS_F_DIV * `VS_P_DUR)/`VS_DUR)) begin //creates the VS pulse
 				next_vs = 0;
 			end else begin
 				next_vs = 1;
 			end
 			
-			if(VS_counter <= 31980 || VS_counter >= 830700) begin
+			if(VS_counter <= 36400 || VS_counter >= 835120) begin
 				next_sync = 0;
 			end else begin
 				next_sync = 1;
